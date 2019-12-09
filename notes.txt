@@ -1,3 +1,7 @@
+git clone https://github.com/Sitecore/docker-images/
+
+cd docker-images
+
 .\Build.ps1
 
 .\Set-LicenseEnvironmentVariable.ps1 -Path D:\license\license.xml
@@ -15,7 +19,3 @@ docker images
 docker images purge
 
 docker rmi $(docker images -a -q)
-
-
-
-
