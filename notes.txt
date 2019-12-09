@@ -1,0 +1,21 @@
+.\Build.ps1
+
+.\Set-LicenseEnvironmentVariable.ps1 -Path D:\license\license.xml
+
+cd .\windows\tests\9.3.x
+
+docker-compose -f .\docker-compose.xp.yml up
+
+docker-compose -f .\docker-compose.xp.yml down
+
+docker ls
+
+docker images
+
+docker images purge
+
+docker rmi $(docker images -a -q)
+
+
+
+
