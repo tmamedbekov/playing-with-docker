@@ -31,7 +31,7 @@ docker-compose -f .\docker-compose.xp.yml down
 
 ## Additional commands
 ```C#
-docker ls // list containers
+docker container ls // list containers
 
 docker images // list docker images
 
