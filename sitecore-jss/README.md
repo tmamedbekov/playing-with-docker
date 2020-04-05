@@ -31,6 +31,13 @@ docker-compose -f .\docker-compose.xp.jss.yml up -d
 ## Tear it down
 docker-compose -f .\docker-compose.xp.jss.yml down
 ```
+
+## HTTPS Docker with Sitecore JSS
+
+Once you run the `compose up` you will have custom alias set up
+
+https://jss.dev.local/
+
 ## Clean up your computer
 
 `Keep in mind you will loose everything that you have been working with, thats why you got deploy folder, those files will stay`
