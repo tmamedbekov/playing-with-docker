@@ -1,4 +1,10 @@
 sitecore-xc/data
-sitecore-jss/setup
+# sitecore-jss/setup
 sitecore-jss/deploy
 sitecore-jss/data
+sitecore-jss/setup/cert.cer
+sitecore-jss/setup/cert.key
+sitecore-jss/setup/cert.password.txt
+sitecore-jss/setup/cert.pfx
+
+
