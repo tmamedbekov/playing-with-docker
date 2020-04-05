@@ -60,3 +60,15 @@ http://localhost:44001/sitecore/api/graph/items/master/ui
 ```
 docker cp sitecore-jss_cm_1:C:/inetpub/wwwroot/web.config . 
 ```
+
+Add the following to the web.config
+
+```
+    <system.webServer>
+      <httpProtocol>
+        <customHeaders>
+          <add name="Access-Control-Allow-Origin" value="*" />
+        </customHeaders>
+      </httpProtocol>
+    </system.webServer>
+```
