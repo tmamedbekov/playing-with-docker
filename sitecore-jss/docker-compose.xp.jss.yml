@@ -1,7 +1,13 @@
 version: "2.4"
 
 services:
-
+  monitor:
+    image: rahnemann/windows-hosts-writer:1.0-nanoserver-${NANOSERVER_VERSION}
+    volumes:
+      - C:\windows\system32\drivers\etc:C:\driversetc
+      - source: '\\.\pipe\docker_engine'
+        target: '\\.\pipe\docker_engine'
+        type: npipe
   sql:
     image: ${REGISTRY}sitecore-xp-jss-sqldev:${SITECORE_VERSION}-windowsservercore-${WINDOWSSERVERCORE_VERSION}
     volumes:
@@ -105,47 +111,55 @@ services:
       xconnect:
         condition: service_started
 
-  cd:
-    image: ${REGISTRY}sitecore-xp-jss-cd:${SITECORE_VERSION}-windowsservercore-${WINDOWSSERVERCORE_VERSION}
-    entrypoint: powershell.exe -Command "& C:\\tools\\entrypoints\\iis\\Development.ps1"
-    ports:
-      - "44002:80"
-    volumes:
-      - .\deploy\website:c:\src
-      - .\data\cd:c:\inetpub\wwwroot\App_Data\logs
-    environment:
-      SITECORE_LICENSE: ${SITECORE_LICENSE}
-      SITECORE_APPSETTINGS_ROLE:DEFINE: ContentDelivery
-      SITECORE_CONNECTIONSTRINGS_SECURITY: Data Source=sql;Initial Catalog=Sitecore.Core;User ID=sa;Password=${SQL_SA_PASSWORD}
-      SITECORE_CONNECTIONSTRINGS_WEB: Data Source=sql;Initial Catalog=Sitecore.Web;User ID=sa;Password=${SQL_SA_PASSWORD}
-      SITECORE_CONNECTIONSTRINGS_EXPERIENCEFORMS: Data Source=sql;Initial Catalog=Sitecore.ExperienceForms;User ID=sa;Password=${SQL_SA_PASSWORD}
-      SITECORE_CONNECTIONSTRINGS_SOLR.SEARCH: http://solr:8983/solr
-      SITECORE_CONNECTIONSTRINGS_MESSAGING: Data Source=sql;Database=Sitecore.Messaging;User ID=sa;Password=${SQL_SA_PASSWORD}
-      SITECORE_CONNECTIONSTRINGS_EXM.MASTER: Data Source=sql;Database=Sitecore.EXM.Master;User ID=sa;Password=${SQL_SA_PASSWORD}
-      SITECORE_CONNECTIONSTRINGS_XCONNECT.COLLECTION: http://xconnect
-      SITECORE_CONNECTIONSTRINGS_XDB.MARKETINGAUTOMATION.OPERATIONS.CLIENT: http://xconnect
-      SITECORE_CONNECTIONSTRINGS_SITECORE.REPORTING.CLIENT: http://xconnect
-      SITECORE_CONNECTIONSTRINGS_XDB.REFERENCEDATA.CLIENT: http://xconnect
-    depends_on:
-      sql:
-        condition: service_healthy
-      solr:
-        condition: service_started
-      xconnect:
-        condition: service_started
+  # cd:
+  #   image: ${REGISTRY}sitecore-xp-jss-cd:${SITECORE_VERSION}-windowsservercore-${WINDOWSSERVERCORE_VERSION}
+  #   entrypoint: powershell.exe -Command "& C:\\tools\\entrypoints\\iis\\Development.ps1"
+  #   ports:
+  #     - "44002:80"
+  #   volumes:
+  #     - .\deploy\website:c:\src
+  #     - .\data\cd:c:\inetpub\wwwroot\App_Data\logs
+  #   environment:
+  #     SITECORE_LICENSE: ${SITECORE_LICENSE}
+  #     SITECORE_APPSETTINGS_ROLE:DEFINE: ContentDelivery
+  #     SITECORE_CONNECTIONSTRINGS_SECURITY: Data Source=sql;Initial Catalog=Sitecore.Core;User ID=sa;Password=${SQL_SA_PASSWORD}
+  #     SITECORE_CONNECTIONSTRINGS_WEB: Data Source=sql;Initial Catalog=Sitecore.Web;User ID=sa;Password=${SQL_SA_PASSWORD}
+  #     SITECORE_CONNECTIONSTRINGS_EXPERIENCEFORMS: Data Source=sql;Initial Catalog=Sitecore.ExperienceForms;User ID=sa;Password=${SQL_SA_PASSWORD}
+  #     SITECORE_CONNECTIONSTRINGS_SOLR.SEARCH: http://solr:8983/solr
+  #     SITECORE_CONNECTIONSTRINGS_MESSAGING: Data Source=sql;Database=Sitecore.Messaging;User ID=sa;Password=${SQL_SA_PASSWORD}
+  #     SITECORE_CONNECTIONSTRINGS_EXM.MASTER: Data Source=sql;Database=Sitecore.EXM.Master;User ID=sa;Password=${SQL_SA_PASSWORD}
+  #     SITECORE_CONNECTIONSTRINGS_XCONNECT.COLLECTION: http://xconnect
+  #     SITECORE_CONNECTIONSTRINGS_XDB.MARKETINGAUTOMATION.OPERATIONS.CLIENT: http://xconnect
+  #     SITECORE_CONNECTIONSTRINGS_SITECORE.REPORTING.CLIENT: http://xconnect
+  #     SITECORE_CONNECTIONSTRINGS_XDB.REFERENCEDATA.CLIENT: http://xconnect
+  #   depends_on:
+  #     sql:
+  #       condition: service_healthy
+  #     solr:
+  #       condition: service_started
+  #     xconnect:
+  #       condition: service_started
 
   cm:
     image: ${REGISTRY}sitecore-xp-jss-standalone:${SITECORE_VERSION}-windowsservercore-${WINDOWSSERVERCORE_VERSION}
-    entrypoint: powershell.exe -Command "& C:\\tools\\entrypoints\\iis\\Development.ps1"
+    entrypoint: powershell.exe -NoLogo -NoProfile -File C:\\setup\\startup.ps1
+    # entrypoint: powershell.exe -Command "& C:\\tools\\entrypoints\\iis\\Development.ps1"
     ports:
       - "44001:80"
+      - "44002:443"
+    networks:
+      default:
+        aliases:
+          - jss.dev.local
     volumes:
       - .\deploy\website:c:\src
       - .\deploy\serialization:c:\Serialization
       - .\data\cm:c:\inetpub\wwwroot\App_Data\logs
+      - .\setup:C:\setup
     environment:
+      HOST_HEADER: jss.dev.local
       SITECORE_LICENSE: ${SITECORE_LICENSE}
-      SITECORE_APPSETTINGS_ROLE:DEFINE: Standalone
+      SITECORE_APPSETTINGS_ROLE:DEFINE: ContentManagement, Indexing #Standalone
       SITECORE_CONNECTIONSTRINGS_CORE: Data Source=sql;Initial Catalog=Sitecore.Core;User ID=sa;Password=${SQL_SA_PASSWORD}
       SITECORE_CONNECTIONSTRINGS_SECURITY: Data Source=sql;Initial Catalog=Sitecore.Core;User ID=sa;Password=${SQL_SA_PASSWORD}
       SITECORE_CONNECTIONSTRINGS_MASTER: Data Source=sql;Initial Catalog=Sitecore.Master;User ID=sa;Password=${SQL_SA_PASSWORD}
@@ -174,3 +188,8 @@ services:
         condition: service_started
       xconnect:
         condition: service_started
+
+networks:
+  default:
+    external:
+      name: nat
